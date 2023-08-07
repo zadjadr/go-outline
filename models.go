@@ -10,6 +10,21 @@ type (
 	TemplateID      string
 )
 
+type AttachmentData struct {
+	ContentType string `json:"contentType"`
+	Size        int    `json:"size"`
+	Name        string `json:"name"`
+	URL         string `json:"url"`
+	DocumentID  string `json:"documentId"`
+}
+
+type Attachment struct {
+	MaxUploadSize  int                    `json:"maxUploadSize"`
+	UploadURL      string                 `json:"uploadUrl"`
+	Form           map[string]interface{} `json:"form"`
+	AttachmentData AttachmentData         `json:"attachment"`
+}
+
 // Document represents an outline document.
 type Document struct {
 	ID               DocumentID    `json:"id"`

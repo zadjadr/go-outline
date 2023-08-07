@@ -31,6 +31,11 @@ func New(baseURL string, hc *http.Client, apiKey string) *Client {
 	return &Client{base: sl}
 }
 
+// Attachments creates a client for operating on attachments.
+func (cl *Client) Attachments() *AttachmentsClient {
+	return newAttachmentsClient(cl.base)
+}
+
 // Documents creates a client for operating on documents.
 func (cl *Client) Documents() *DocumentsClient {
 	return newDocumentsClient(cl.base)
