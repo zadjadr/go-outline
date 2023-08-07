@@ -27,3 +27,7 @@ func CollectionsCreateEndpoint() string {
 func DocumentsCreateEndpoint() string {
 	return "documents.create"
 }
+
+func DocumentsUpdateEndpoint() string {
+	return "documents.update"
+}

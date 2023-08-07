@@ -200,7 +200,6 @@ func TestClientCollectionsCreate(t *testing.T) {
 	assert.Equal(t, &expected.Data, got)
 }
 
-
 func TestDocumentsClientCreate(t *testing.T) {
 	testResponse := exampleDocumentsCreateResponse_1documents
 
@@ -235,9 +234,44 @@ func TestDocumentsClientCreate(t *testing.T) {
 	}{}
 	require.NoError(t, json.Unmarshal([]byte(testResponse), expected))
 	assert.Equal(t, &expected.Data, got)
-}  
-  
-  
+}
+
+func TestDocumentsClientUpdate(t *testing.T) {
+	testResponse := exampleDocumentsUpdateResponse_1documents
+
+	// Prepare HTTP client with mocked transport.
+	hc := &http.Client{}
+	hc.Transport = &testutils.MockRoundTripper{RoundTripFn: func(r *http.Request) (*http.Response, error) {
+		// Assert request method and URL.
+		assert.Equal(t, http.MethodPost, r.Method)
+		u, err := url.JoinPath(testBaseURL, common.DocumentsUpdateEndpoint())
+		require.NoError(t, err)
+		assert.Equal(t, u, r.URL.String())
+
+		testAssertHeaders(t, r.Header)
+		testAssertBody(t, r, fmt.Sprintf(`{"id":"%s", "title":"%s", "text":"%s", "publish":%t}`, "497f6eca-6276-4993-bfeb-53cbbbba6f08", "🎉 Welcome to Acme Inc", "Updated text!", true))
+
+		return &http.Response{
+			Request:       r,
+			ContentLength: -1,
+			StatusCode:    http.StatusOK,
+			Body:          io.NopCloser(strings.NewReader(testResponse)),
+		}, nil
+	}}
+
+	cl := outline.New(testBaseURL, hc, testApiKey)
+	var id outline.DocumentID = "497f6eca-6276-4993-bfeb-53cbbbba6f08"
+	got, err := cl.Documents().Update(id).Title("🎉 Welcome to Acme Inc").Text("Updated text!").Publish(true).Do(context.Background())
+	require.NoError(t, err)
+
+	// Manually unmarshal test response and see if we get same object via the API.
+	expected := &struct {
+		Data outline.Document `json:"data"`
+	}{}
+	require.NoError(t, json.Unmarshal([]byte(testResponse), expected))
+	assert.Equal(t, &expected.Data, got)
+}
+
 func testAssertHeaders(t *testing.T, headers http.Header) {
 	t.Helper()
 	assert.Equal(t, headers.Get(common.HdrKeyAccept), common.HdrValueAccept)
@@ -349,6 +383,31 @@ const exampleDocumentsCreateResponse_1documents string = `{
 		"fullWidth": true,
 		"emoji": "🎉",
 		"text": "Some text",
+		"urlId": "hDYep1TPAM",
+		"collaborators": [],
+		"pinned": true,
+		"template": true,
+		"templateId": "196100ac-4eec-4fb6-a7f7-86c8b584771d",
+		"revision": 0,
+		"createdAt": "2019-08-24T14:15:22Z",
+		"createdBy": {},
+		"updatedAt": "2019-08-24T14:15:22Z",
+		"updatedBy": {},
+		"publishedAt": "2019-08-24T14:15:22Z",
+		"archivedAt": "2019-08-24T14:15:22Z",
+		"deletedAt": "2019-08-24T14:15:22Z"
+	}
+}`
+
+const exampleDocumentsUpdateResponse_1documents string = `{
+	"data": {
+		"id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+		"collectionId": "0ffe69e2-b7af-4b1e-835c-867376165f50",
+		"parentDocumentId": "ce8a7254-3ff2-448e-a302-0033b010f00b",
+		"title": "🎉 Welcome to Acme Inc",
+		"fullWidth": true,
+		"emoji": "🎉",
+		"text": "Updated Text!",
 		"urlId": "hDYep1TPAM",
 		"collaborators": [],
 		"pinned": true,
